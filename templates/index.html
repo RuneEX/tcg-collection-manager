@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TCG Collection Manager</title>
+
+  <style>
+    :root{
+      --bg:#e6ebf2;
+      --panel:#ffffff;
+      --border:#d2d9e3;
+      --text:#1f2937;
+      --muted:#6b7280;
+      --primary:#2f6fed;
+    }
+
+    html, body { height:100%; }
+
+    body{
+      margin:0;
+      padding:0;
+      font-family: Arial, sans-serif;
+      color: var(--text);
+      background: var(--bg);
+    }
+
+    .app-header{
+      text-align:center;
+      margin: 8px 0 22px 0;
+    }
+    .app-header h1{
+      font-size:24px;
+      margin: 0 0 4px 0;
+      font-weight: 900;
+      color:#24304a;
+    }
+    .app-header span{
+      font-size:13px;
+      color: var(--muted);
+      padding: 4px 10px;
+      border-radius:999px;
+      background:#eef2ff;
+      border:1px solid #dfe6ff;
+      display:inline-block;
+    }
+
+    .container{
+      max-width: 900px;
+      margin: 32px auto;
+      padding: 0 16px;
+    }
+
+    h1, h2{
+      margin: 0 0 12px 0;
+      color:#24304a;
+      font-weight: 900;
+    }
+    h2{ font-size:20px; }
+
+    .muted{ color:var(--muted); font-size:13px; }
+
+    .panel{
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: 0 12px 28px rgba(0,0,0,0.10);
+    }
+
+    /* Toolbar */
+    .toolbar{
+      display:flex;
+      justify-content: space-between;
+      align-items:center;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+    .toolbar-left, .toolbar-right{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    /* Inputs */
+    .row{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+
+    input[type="text"], input[type="number"], select{
+      padding:10px 12px;
+      border:1px solid var(--border);
+      border-radius:12px;
+      outline:none;
+      background:white;
+    }
+
+    input:focus, select:focus{
+      border-color: rgba(47,111,237,0.55);
+      box-shadow: 0 0 0 4px rgba(47,111,237,0.12);
+    }
+
+    /* Buttons */
+    button{
+      padding:10px 12px;
+      border:none;
+      border-radius:12px;
+      cursor:pointer;
+      font-weight:700;
+      transition: transform .1s ease, box-shadow .15s ease;
+    }
+
+    button:hover{
+      transform: translateY(-1px);
+      box-shadow: 0 8px 18px rgba(17,24,39,.14);
+    }
+
+    .btn-primary{ background: var(--primary); color:white; }
+    .btn-ghost{ background:#eef2ff; color:#2f3a5a; border:1px solid #dfe6ff; }
+    .btn-danger{ background:#e44b4b; color:white; }
+
+    /* Dashboard */
+    .stats{
+      display:grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap:12px;
+      margin-top:12px;
+    }
+    .stat{
+      background:white;
+      border:1px solid var(--border);
+      border-radius:16px;
+      padding:14px;
+      box-shadow: 0 10px 22px rgba(0,0,0,.08);
+    }
+    .stat-label{
+      font-size:13px;
+      display:flex;
+      align-items:center;
+      gap:6px;
+      color:var(--muted);
+      margin-bottom:6px;
+      font-weight:700;
+    }
+    .stat-value{
+      font-size:20px;
+      font-weight:900;
+    }
+
+    .value-up{ color:#16a34a; }
+    .value-down{ color:#dc2626; }
+
+    @media(max-width:900px){
+      .stats{ grid-template-columns: repeat(2, 1fr); }
+    }
+
+    /* Cards */
+    .cards{ display:grid; gap:12px; }
+
+    .card{
+      background:white;
+      border:1px solid var(--border);
+      border-radius:16px;
+      padding:16px;
+      box-shadow: 0 10px 26px rgba(17,24,39,.08);
+      transition: transform .15s ease, box-shadow .15s ease;
+    }
+    .card:hover{
+      transform: translateY(-3px);
+      box-shadow: 0 14px 34px rgba(17,24,39,.12);
+    }
+
+    .card-body{
+      display:grid;
+      grid-template-columns: 140px 1fr 180px;
+      gap:16px;
+      align-items:start;
+    }
+    @media(max-width:900px){
+      .card-body{ grid-template-columns:1fr; }
+    }
+
+    .card-img img{
+      width:140px;
+      border-radius:14px;
+      border:1px solid #cfd6df;
+      background:white;
+      padding:4px;
+      box-shadow: 0 8px 18px rgba(0,0,0,0.15);
+      transition: transform .15s ease, box-shadow .15s ease;
+      cursor: zoom-in;
+    }
+    .card-img img:hover{
+      transform: scale(1.05);
+      box-shadow: 0 12px 28px rgba(0,0,0,0.25);
+    }
+
+    .card-title{
+      font-size:18px;
+      font-weight:900;
+      margin:0;
+    }
+
+    .card-meta{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+
+    .code-row{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      margin-top: 2px;
+    }
+
+    .card-code{
+      font-size:13px;
+      color:var(--muted);
+      font-weight:600;
+      margin:0;
+    }
+
+    .price{
+      font-size:22px;
+      font-weight:900;
+      color:#111827;
+      white-space:nowrap;
+      text-align:right;
+    }
+
+    .actions{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      align-items:flex-end;
+    }
+
+    .history{
+      margin-top:12px;
+      padding-top:12px;
+      border-top:1px solid var(--border);
+    }
+    .history li{
+      font-size:12px;
+      color:#6b7280;
+    }
+
+    /* Trends */
+    .trend{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:3px 8px;
+      border-radius:999px;
+      font-size:11px;
+      font-weight:800;
+      border:1px solid var(--border);
+    }
+    .trend-up{ color:#1a7f37; background:#eaf7ee; }
+    .trend-down{ color:#b42318; background:#fdecec; }
+    .trend-same{ color:#555; background:#f3f4f6; }
+    .trend-none{ color:#777; background:#f7f7f8; }
+
+    /* Add form */
+    .add-row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    .add-row input{ min-width:200px; }
+
+    .price-actions{ display:flex; gap:10px; align-items:center; }
+    .price-actions input{ min-width:140px; }
+    .price-actions button{ white-space:nowrap; }
+
+    /* Modal */
+    .img-modal{
+      display:none;
+      position:fixed;
+      z-index:1000;
+      left:0;
+      top:0;
+      width:100%;
+      height:100%;
+      background: rgba(0,0,0,0.85);
+      justify-content:center;
+      align-items:center;
+    }
+    .img-modal-content{
+      max-width:80%;
+      max-height:80%;
+      border-radius:14px;
+      box-shadow:0 20px 40px rgba(0,0,0,0.5);
+    }
+    .img-close{
+      position:absolute;
+      top:20px;
+      right:30px;
+      color:white;
+      font-size:40px;
+      cursor:pointer;
+      user-select:none;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app-header">
+    <h1>TCG Collection Manager</h1>
+    <span>Präsentationsmodus - lokal ausgelegte Anwendung</span>
+  </div>
+
+  <div class="container">
+
+    {% if error == "price" %}
+      <div class="panel" style="border:1px solid #e44b4b;">
+        <strong style="color:#e44b4b;">Fehler:</strong> Preis darf nicht negativ sein.
+      </div>
+    {% elif error == "duplicate" %}
+      <div class="panel" style="border:1px solid #e44b4b;">
+        <strong style="color:#e44b4b;">Fehler:</strong> Diese Karte existiert bereits.
+      </div>
+    {% elif error == "empty" %}
+      <div class="panel" style="border:1px solid #e44b4b;">
+        <strong style="color:#e44b4b;">Fehler:</strong> Name und Kartencode dürfen nicht leer sein.
+      </div>
+    {% elif error == "toolong" %}
+      <div class="panel" style="border:1px solid #e44b4b;">
+        <strong style="color:#e44b4b;">Fehler:</strong> Name ist zu lang.
+      </div>
+    {% elif error == "codeformat" %}
+      <div class="panel" style="border:1px solid #e44b4b;">
+        <strong style="color:#e44b4b;">Fehler:</strong> Kartencode-Format ungültig. Beispiel: OP13-118
+      </div>
+    {% endif %}
+
+    <!-- Dashboard -->
+    <div class="panel">
+      <h2>Dashboard</h2>
+
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-label">📦 Anzahl Karten</div>
+          <div class="stat-value">{{ card_count }}</div>
+        </div>
+
+        <div class="stat">
+          <div class="stat-label">💰 Gesamtwert</div>
+          <div class="stat-value">€{{ "%.2f"|format(total_value) }}</div>
+        </div>
+
+        <div class="stat">
+          <div class="stat-label">📈 Top Gainer</div>
+          <div class="stat-value {% if top_gainer and top_gainer.diff > 0 %}value-up{% endif %}">
+            {% if top_gainer and top_gainer.diff > 0 %}
+              +€{{ "%.2f"|format(top_gainer.diff) }}
+            {% else %}
+              —
+            {% endif %}
+          </div>
+          <div class="muted">
+            {% if top_gainer and top_gainer.diff > 0 %}
+              {{ top_gainer.card.name }} ({{ top_gainer.card.set_name }})
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="stat">
+          <div class="stat-label">📉 Top Loser</div>
+          <div class="stat-value {% if top_loser and top_loser.diff < 0 %}value-down{% endif %}">
+            {% if top_loser and top_loser.diff < 0 %}
+              -€{{ "%.2f"|format((-top_loser.diff)) }}
+            {% else %}
+              —
+            {% endif %}
+          </div>
+          <div class="muted">
+            {% if top_loser and top_loser.diff < 0 %}
+              {{ top_loser.card.name }} ({{ top_loser.card.set_name }})
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add -->
+    <div class="panel">
+      <h2>Karte hinzufügen</h2>
+
+      <form action="/add-card" method="post" class="row add-row">
+        <input type="text" name="card_code" placeholder="Kartencode (z.B. OP13-118)" required>
+        <input type="text" name="name" placeholder="Kartenname" required>
+
+        <div class="price-actions">
+          <input type="number" step="0.01" name="price" placeholder="Preis" required>
+          <button class="btn-primary" type="submit">Speichern</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Search -->
+    <div class="panel">
+      <h2>Karten durchsuchen</h2>
+
+      <div class="toolbar">
+        <div class="toolbar-left">
+          <form action="/" method="get" class="row" style="margin:0;">
+            <input type="text" name="q" placeholder="Suche nach Name oder Kartencode" value="{{ q }}" style="min-width:220px;">
+            <select name="sort">
+              <option value="" {% if not sort %}selected{% endif %}>Standard</option>
+              <option value="price_desc" {% if sort=="price_desc" %}selected{% endif %}>Preis (hoch → runter)</option>
+              <option value="price_asc" {% if sort=="price_asc" %}selected{% endif %}>Preis (runter → hoch)</option>
+              <option value="name_asc" {% if sort=="name_asc" %}selected{% endif %}>Name (A → Z)</option>
+            </select>
+
+            <button class="btn-ghost" type="submit">Anwenden</button>
+
+            <a href="/" style="text-decoration:none;">
+              <button class="btn-ghost" type="button">Reset</button>
+            </a>
+          </form>
+        </div>
+
+        <div class="toolbar-right">
+          <a href="/export-csv" style="text-decoration:none;">
+            <button class="btn-ghost" type="button">CSV Export</button>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cards -->
+    <h2>Gespeicherte Karten</h2>
+
+    {% if cards and cards|length > 0 %}
+      <div class="cards">
+        {% for card in cards %}
+          <div class="card">
+            <div class="card-body">
+
+              <div class="card-img">
+                {% if card.image_url %}
+                  <img src="{{ card.image_url }}" alt="card image">
+                {% else %}
+                  <img src="/static/cards/{{ card.card_code }}.png"
+                       onerror="this.onerror=null; this.src='/static/cards/{{ card.card_code }}.jpg';"
+                       alt="card image">
+                {% endif %}
+              </div>
+
+              <div class="card-meta">
+                <p class="card-title">{{ card.name }}</p>
+
+                <div class="code-row">
+                  <span class="card-code">{{ card.card_code }}</span>
+
+                  {% if trends[card.id] == "up" %}
+                    <span class="trend trend-up">⬆️ gestiegen</span>
+                  {% elif trends[card.id] == "down" %}
+                    <span class="trend trend-down">⬇️ gefallen</span>
+                  {% elif trends[card.id] == "same" %}
+                    <span class="trend trend-same">➖ gleich</span>
+                  {% else %}
+                    <span class="trend trend-none">kein Vergleich</span>
+                  {% endif %}
+                </div>
+
+                <div class="history">
+                  <p><strong>Letzte Preisstände:</strong></p>
+
+                  {% set hlist = histories.get(card.id, []) %}
+                  {% if hlist|length > 0 %}
+                    <ul>
+                      {% for h in hlist %}
+                        <li>€{{ "%.2f"|format(h.price) }} – {{ h.created_at.strftime("%d.%m.%Y %H:%M") }}</li>
+                      {% endfor %}
+                    </ul>
+                  {% else %}
+                    <p class="muted">Noch keine Preis-Historie vorhanden.</p>
+                  {% endif %}
+                </div>
+              </div>
+
+              <div class="actions">
+                <div class="price">€{{ "%.2f"|format(card.price) }}</div>
+
+                <form action="/update-price/{{ card.id }}" method="post" class="row" style="margin:0; justify-content:flex-end;">
+                  <input type="number" step="0.01" name="new_price" placeholder="Neuer Preis" required style="max-width:140px;">
+                  <button class="btn-ghost" type="submit">Preis ändern</button>
+                </form>
+
+                <form action="/delete-card/{{ card.id }}" method="post">
+                  <button class="btn-danger" type="submit" onclick="return confirm('Karte wirklich löschen?');">Löschen</button>
+                </form>
+              </div>
+
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+
+    {% elif q and q|length > 0 %}
+      <p class="muted">Keine Treffer für „{{ q }}“.</p>
+    {% else %}
+      <p class="muted">Noch keine Karten gespeichert.</p>
+    {% endif %}
+
+  </div>
+
+  <!-- Image modal -->
+  <div id="imgModal" class="img-modal">
+    <span class="img-close">&times;</span>
+    <img class="img-modal-content" id="modalImage">
+  </div>
+
+  <script>
+    document.querySelectorAll(".card-img img").forEach(img => {
+      img.addEventListener("click", () => {
+        const modal = document.getElementById("imgModal");
+        const modalImg = document.getElementById("modalImage");
+        modal.style.display = "flex";
+        modalImg.src = img.src;
+      });
+    });
+
+    document.querySelector(".img-close").addEventListener("click", () => {
+      document.getElementById("imgModal").style.display = "none";
+    });
+
+    document.getElementById("imgModal").addEventListener("click", (e) => {
+      if (e.target.id === "imgModal") {
+        e.target.style.display = "none";
+      }
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        document.getElementById("imgModal").style.display = "none";
+      }
+    });
+  </script>
+</body>
+</html>
